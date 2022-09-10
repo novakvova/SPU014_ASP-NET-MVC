@@ -9,7 +9,7 @@ using WebShop.Data;
 namespace WebShop.Migrations
 {
     [DbContext(typeof(MyAppContext))]
-    [Migration("20220910081713_Add tblCategories")]
+    [Migration("20220910094334_Add tblCategories")]
     partial class AddtblCategories
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
