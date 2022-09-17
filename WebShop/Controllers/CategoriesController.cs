@@ -1,5 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
+using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using WebShop.Data;
 using WebShop.Data.Entities;
 using WebShop.Models;
@@ -9,18 +14,16 @@ namespace WebShop.Controllers
     public class CategoriesController : Controller
     {
         private readonly MyAppContext _appContext;
-        public CategoriesController(MyAppContext appContext)
+        private readonly IMapper _mapper;
+        public CategoriesController(MyAppContext appContext, IMapper mapper)
         {
             _appContext = appContext;
+            _mapper = mapper;
         }
 
         public IActionResult Index()
         {
-            var list = _appContext.Categories.Select(x => new CategoryItemViewModel
-            {
-                Name = x.Name,
-                Id = x.Id
-            }).ToList();
+            var list = _appContext.Categories.Select(x => _mapper.Map<CategoryItemViewModel>(x)).ToList();
 
             return View(list);
         }
@@ -32,12 +35,21 @@ namespace WebShop.Controllers
         }
         //Зберігаємо категорію в БД
         [HttpPost]
-        public IActionResult Create(CategoryCreateViewModel model)
+        public async Task<IActionResult> Create(CategoryCreateViewModel model)
         {
-            CategoryEntity entity = new CategoryEntity()
+            string fileName = string.Empty;
+            if(model.UploadImage!=null)
             {
-                Name = model.Name
-            };
+                var fileExp = Path.GetExtension(model.UploadImage.FileName);
+                var dirPath = Path.Combine(Directory.GetCurrentDirectory(), "images");
+                fileName = Path.GetRandomFileName() + fileExp;
+                using (var stream = System.IO.File.Create(Path.Combine(dirPath, fileName)))
+                {
+                    await model.UploadImage.CopyToAsync(stream);
+                }
+            }
+            CategoryEntity entity = _mapper.Map<CategoryEntity>(model);
+            entity.Image = fileName;
             _appContext.Categories.Add(entity);
             _appContext.SaveChanges();
 

@@ -3,12 +3,16 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using WebShop.Data;
+using WebShop.Mapper;
+using WebShop.Services;
 
 namespace WebShop
 {
@@ -28,6 +32,8 @@ namespace WebShop
                 opt.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
             services.AddControllersWithViews();
+
+            services.AddAutoMapper(typeof(AppMapProfile));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -43,9 +49,21 @@ namespace WebShop
             }
             app.UseStaticFiles();
 
+            //папка де будуть лижать фото
+            var dir = Path.Combine(Directory.GetCurrentDirectory(), "images");
+            if(!Directory.Exists(dir))
+                Directory.CreateDirectory(dir);
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider= new PhysicalFileProvider(dir),
+                RequestPath="/images"
+            });
+
             app.UseRouting();
 
             app.UseAuthorization();
+
+            app.SeedData();
 
             app.UseEndpoints(endpoints =>
             {
