@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System.Linq;
+using WebShop.Constants;
 using WebShop.Data;
 using WebShop.Data.Entities;
 
@@ -33,7 +34,39 @@ namespace WebShop.Services
                         context.SaveChanges();
                     }
                 }
-                
+
+                if(!roleManager.Roles.Any())
+                {
+                    RoleEntity admin = new RoleEntity
+                    {
+                        Name = Roles.Admin
+                    };
+                    var result = roleManager.CreateAsync(admin).Result;
+
+                    RoleEntity user = new RoleEntity
+                    {
+                        Name = Roles.User
+                    };
+                    result = roleManager.CreateAsync(user).Result;
+                }
+
+                if (!userManager.Users.Any())
+                {
+                    var user = new UserEntity
+                    {
+                        Email = "admin@gmail.com",
+                        UserName = "admin@gmail.com",
+                        PhoneNumber = "098 34 23 211"
+                    };
+
+                    var result = userManager.CreateAsync(user, "123456").Result;
+
+                    if(result.Succeeded)
+                    {
+                        result = userManager.AddToRoleAsync(user, Roles.User).Result;
+                    }
+                }
+
             }
         }
     }
