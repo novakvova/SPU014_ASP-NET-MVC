@@ -63,7 +63,7 @@ namespace WebShop.Services
 
                     if(result.Succeeded)
                     {
-                        result = userManager.AddToRoleAsync(user, Roles.User).Result;
+                        result = userManager.AddToRoleAsync(user, Roles.Admin).Result;
                     }
                 }
 

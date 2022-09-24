@@ -1,16 +1,19 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using WebShop.Constants;
 using WebShop.Data;
 using WebShop.Data.Entities;
 using WebShop.Models;
 
 namespace WebShop.Controllers
 {
+    [Authorize(Roles = Roles.Admin)]
     public class CategoriesController : Controller
     {
         private readonly MyAppContext _appContext;
