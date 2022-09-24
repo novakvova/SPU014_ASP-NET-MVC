@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System.Linq;
@@ -14,6 +15,8 @@ namespace WebShop.Services
             using(var scope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope())
             {
                 var context = scope.ServiceProvider.GetRequiredService<MyAppContext>();
+                var userManager = scope.ServiceProvider.GetRequiredService<UserManager<UserEntity>>();
+                var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<RoleEntity>>();
                 
                 context.Database.Migrate();
 
@@ -30,6 +33,7 @@ namespace WebShop.Services
                         context.SaveChanges();
                     }
                 }
+                
             }
         }
     }
