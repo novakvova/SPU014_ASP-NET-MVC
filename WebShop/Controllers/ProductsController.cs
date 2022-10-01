@@ -79,5 +79,18 @@ namespace WebShop.Controllers
                 _mapper.Map<SelectItemViewModel>(x)).ToList();
             return View(model);
         }
+
+        [HttpPost]
+        public string Delete(ProductDeleteViewModel model)
+        {
+            ProductEntity p = _appContext.Products.SingleOrDefault(x => x.Id == model.Id);
+            if (p != null)
+            {
+                _appContext.Products.Remove(p);
+                _appContext.SaveChanges();
+            }
+            return "ok";
+            
+        }
     }
 }

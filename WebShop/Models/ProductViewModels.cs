@@ -48,4 +48,9 @@ namespace WebShop.Models
         public string Description { get; set; }
         public List<SelectItemViewModel> Categories { get; set; }
     }
+
+    public class ProductDeleteViewModel
+    {
+        public int Id { get; set; }
+    }
 }
