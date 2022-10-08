@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Collections;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace WebShop.Data.Entities
@@ -13,6 +15,7 @@ namespace WebShop.Data.Entities
         public bool IsDelete { get; set; }
         [StringLength(255)]
         public string Image { get; set; }
+        public virtual ICollection<ProductEntity> Products { get; set; } 
 
     }
 }

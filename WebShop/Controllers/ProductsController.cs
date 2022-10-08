@@ -92,5 +92,18 @@ namespace WebShop.Controllers
             return "ok";
             
         }
+
+        [HttpGet]
+        public IActionResult Details(int id)
+        {
+            var p = _appContext.Products
+                .Include(c=>c.Category)
+                .Include(x=>x.ProductImages)
+                .SingleOrDefault(x => x.Id == id);
+
+            var model = _mapper.Map<ProductDetailsViewModel>(p);
+            return View(model);
+
+        }
     }
 }
