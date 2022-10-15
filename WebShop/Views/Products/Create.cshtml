@@ -59,28 +59,163 @@
     <a asp-action="Index">Back to List</a>
 </div>
 
+
+<!-- Modal -->
+<div class="modal" id="cropperModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Редагування фото</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-9">
+                        <div>
+                            <img src="/images/select.png"
+                                 id="imgCropper"
+                                 width="100%"
+                                 alt="Фото для обрізки" />
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div id="imgPrev"
+                             class="preview">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="btnLeft" class="btn btn-success">Left</button>
+                <button type="button" id="btnRight" class="btn btn-success">Right</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрити</button>
+                <button type="button" id="btnAdd" class="btn btn-primary">Обрізати</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/lib/cropperjs/cropper.min.js"></script>
+
 @section Scripts {
     <script>
         window.onload = function() {
+
+            var blob;
+            var imgCropper = document.getElementById("imgCropper");
+            var imgPrev = document.getElementById("imgPrev");
+            var cropper = new Cropper(imgCropper, {
+                aspectRatio: 1 / 1,
+                //viewMode: 1,
+                preview: imgPrev
+            });
+
+
             const myImages = document.getElementById("myImages");
             const files = document.getElementById("files");
-            files.onchange=function(e) {
+            files.onchange= function(e) {
                 const list= e.target.files;
                 if(list && list.length) {
                     for(let i = 0;i<list.length; i++)
                     {
                         const file = list[i];
-                        const url = URL.createObjectURL(file);
-                        var data = `
-                        <img src = ${url} height="100" />
-                        `;
-                        console.log(data);
-                        myImages.innerHTML+=data;
+
+                        var url = URL.createObjectURL(file);
+                        //console.log("image", url);
+                        var myModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('cropperModal'));
+                        myModal.show();
+                        cropper.replace(url);
+                        //image.value = "";
+
+                        
+
+
+                    //    const url = URL.createObjectURL(file);
+                    //    var data = `
+                    //    <img src = ${url} height="100" />
+                    //    `;
+                    //    console.log(data);
+                    //    myImages.innerHTML+=data;
                     }
                 }
                 e.target.value="";
                 //console.log("Select files", list);
             }
+
+            let btnAdd = document.getElementById("btnAdd");
+            btnAdd.onclick =  function () {
+                cropper.getCroppedCanvas().toBlob(async (blob) => {
+                    var formData = new FormData();
+                    formData.append("file", blob);
+                    const resp = await axios.post("/Products/Upload", formData,
+                        {
+                            headers: {
+                                "Content-Type": "multipart/form-data"
+                            }
+                        });
+                    console.log("upalod image resp", resp.data);
+                    const pimage = resp.data;
+                    const url = "/images/" + pimage.name;
+                    var data = `
+                                                <img src = ${url} height="100" />
+                                                <input type="hidden" name="images"
+                                                            value=${pimage.id} />
+                                            `;
+                    console.log(data);
+                    myImages.innerHTML += data;
+                    var myModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('cropperModal'));
+                    myModal.hide();
+                });
+                
+            }
+
+            let btnLeft = document.getElementById("btnLeft");
+            btnLeft.onclick = function () {
+                cropper.rotate(-90);
+            }
+
+            let btnRight = document.getElementById("btnRight");
+            btnRight.onclick = function () {
+                cropper.rotate(90);
+            }
+        
         }
     </script>
+
+
+    @*<script>
+        
+        //Подія вибору фото для користувача
+        image.onchange = function (e) {
+            var file = e.target.files[0];
+            if (file) {
+                var url = URL.createObjectURL(file);
+                //console.log("image", url);
+                var myModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('cropperModal'));
+                myModal.show();
+                cropper.replace(url);
+                image.value = "";
+
+            }
+        }
+
+        let btnAdd = document.getElementById("btnAdd");
+        btnAdd.onclick = function () {
+            base64 = cropper.getCroppedCanvas().toDataURL();
+            var selectImage = document.getElementById("selectImage");
+            selectImage.src = base64;
+            var myModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('cropperModal'));
+            myModal.hide();
+        }
+
+        let btnLeft = document.getElementById("btnLeft");
+        btnLeft.onclick = function () {
+            cropper.rotate(-90);
+        }
+
+        let btnRight = document.getElementById("btnRight");
+        btnRight.onclick = function () {
+            cropper.rotate(90);
+        }
+    </script>*@
 }

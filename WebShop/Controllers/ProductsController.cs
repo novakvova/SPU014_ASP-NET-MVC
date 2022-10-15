@@ -1,12 +1,19 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 using WebShop.Data;
 using WebShop.Data.Entities;
+using WebShop.Helpers;
 using WebShop.Models;
 using WebShop.Models.Helpers;
+using static System.Net.WebRequestMethods;
 
 namespace WebShop.Controllers
 {
@@ -46,6 +53,12 @@ namespace WebShop.Controllers
                 var product = _mapper.Map<ProductEntity>(model);
                 _appContext.Products.Add(product);
                 _appContext.SaveChanges();
+                foreach (var id in model.Images)
+                {
+                    var productImage = _appContext.ProductImages.SingleOrDefault(x => x.Id == id);
+                    productImage.ProductId = product.Id;
+                    _appContext.SaveChanges();
+                }
                 return RedirectToAction(nameof(Index));
             }
             model.Categories = _appContext.Categories.Select(x =>
@@ -105,5 +118,36 @@ namespace WebShop.Controllers
             return View(model);
 
         }
+        
+        [HttpPost]
+        public async Task<ProductImageItemViewModel> Upload(ProductImageCreateViewModel model)
+        {
+            string fileName = string.Empty;
+            if (model.File != null)
+            {
+                var fileExp = Path.GetExtension(model.File.FileName);
+                if (string.IsNullOrEmpty(fileExp))
+                    fileExp = ".jpeg";
+                var dirPath = Path.Combine(Directory.GetCurrentDirectory(), "images");
+                fileName = Path.GetRandomFileName() + fileExp;
+
+                using (var ms = new MemoryStream())
+                {
+                    model.File.CopyTo(ms);
+                    Bitmap bmp = new Bitmap(Image.FromStream(ms));
+                    var saveImage = ImageWorker.CompressImage(bmp, 1200, 1200, false,true);
+                    //поворот на 270 градусів
+                    //if(saveImage.Height>saveImage.Width)
+                    //    saveImage.RotateFlip(RotateFlipType.Rotate270FlipNone);
+                    saveImage.Save(Path.Combine(dirPath, fileName), ImageFormat.Jpeg);
+                }
+            }
+            ProductImageEntity productImage = new ProductImageEntity();
+            productImage.Name = fileName;
+            _appContext.ProductImages.Add(productImage);
+            _appContext.SaveChanges();
+            return new ProductImageItemViewModel { Id=productImage.Id, Name=productImage.Name};
+        }
+        
     }
 }
